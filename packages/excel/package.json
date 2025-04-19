@@ -1,5 +1,5 @@
 {
-  "name": "@woojoo/excel",
+  "name": "woojoo-excel",
   "version": "1.0.0",
   "description": "NestJS 기반 프로젝트를 위한 Excel 변환 모듈",
   "main": "dist/index.js",
