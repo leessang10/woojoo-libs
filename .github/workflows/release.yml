@@ -44,6 +44,11 @@ jobs:
       - name: Build packages
         run: pnpm run build
 
+      - name: Clean Prisma generated files
+        run: |
+          rm -rf packages/common/src/generated
+          rm -f pnpm-lock.yaml
+
       - name: Publish packages
         run: pnpm lerna publish from-package --yes
         env:
