@@ -1,0 +1,16 @@
+{
+  "name": "woojoo-libs",
+  "private": true,
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "bootstrap": "lerna bootstrap",
+    "build": "lerna run build",
+    "test": "lerna run test",
+    "clean": "rimraf packages/*/dist"
+  },
+  "devDependencies": {
+    "lerna": "^7.0.0",
+    "typescript": "^5.3.3",
+    "rimraf": "^5.0.0"
+  }
+} 
