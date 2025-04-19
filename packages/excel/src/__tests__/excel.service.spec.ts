@@ -1,5 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { Fill, Font, Workbook } from 'exceljs';
+import * as fs from 'fs';
+import * as path from 'path';
 import { ExcelService } from '../excel.service';
 import { ExcelColumn, ExcelOptions } from '../interfaces/excel-options.interface';
 
@@ -95,6 +97,87 @@ describe('ExcelService', () => {
     it('should throw error for invalid data', async () => {
       const invalidData = [{ invalidKey: 'value' }];
       await expect(service.generateExcel(invalidData, options)).rejects.toThrow('Invalid data structure');
+    });
+  });
+
+  describe('대용량 데이터 처리', () => {
+    const TEST_FILE_PATH = path.join(__dirname, 'test-large.xlsx');
+
+    afterEach(() => {
+      // 테스트 파일 정리
+      if (fs.existsSync(TEST_FILE_PATH)) {
+        fs.unlinkSync(TEST_FILE_PATH);
+      }
+    });
+
+    it('10,000행의 데이터를 처리할 수 있어야 함', async () => {
+      const data = Array.from({ length: 10000 }, (_, i) => ({
+        id: i + 1,
+        name: `사용자_${i + 1}`,
+        email: `user${i + 1}@example.com`,
+      }));
+
+      const options = {
+        sheetName: '대용량_테스트',
+        columns: [
+          { header: 'ID', key: 'id', width: 10 },
+          { header: '이름', key: 'name', width: 20 },
+          { header: '이메일', key: 'email', width: 30 },
+        ],
+      };
+
+      const buffer = await service.generateExcel(data, options);
+      fs.writeFileSync(TEST_FILE_PATH, buffer);
+
+      // 파일이 생성되었는지 확인
+      expect(fs.existsSync(TEST_FILE_PATH)).toBe(true);
+
+      // 파일 크기 확인 (최소 100KB 이상)
+      const stats = fs.statSync(TEST_FILE_PATH);
+      expect(stats.size).toBeGreaterThan(100 * 1024);
+    });
+
+    it('청크 단위로 대용량 데이터를 처리할 수 있어야 함', async () => {
+      const CHUNK_SIZE = 5000;
+      const TOTAL_ROWS = 20000;
+      const columns = [
+        { header: 'ID', key: 'id', width: 10 },
+        { header: '이름', key: 'name', width: 20 },
+        { header: '이메일', key: 'email', width: 30 },
+      ];
+
+      // 첫 번째 청크 처리
+      const firstChunk = Array.from({ length: CHUNK_SIZE }, (_, i) => ({
+        id: i + 1,
+        name: `사용자_${i + 1}`,
+        email: `user${i + 1}@example.com`,
+      }));
+
+      let buffer = await service.generateExcel(firstChunk, {
+        sheetName: '청크_1',
+        columns,
+      });
+      fs.writeFileSync(TEST_FILE_PATH, buffer);
+
+      // 두 번째 청크 처리
+      const secondChunk = Array.from({ length: CHUNK_SIZE }, (_, i) => ({
+        id: CHUNK_SIZE + i + 1,
+        name: `사용자_${CHUNK_SIZE + i + 1}`,
+        email: `user${CHUNK_SIZE + i + 1}@example.com`,
+      }));
+
+      buffer = await service.generateExcel(secondChunk, {
+        sheetName: '청크_2',
+        columns,
+      });
+      fs.appendFileSync(TEST_FILE_PATH, buffer);
+
+      // 파일이 생성되었는지 확인
+      expect(fs.existsSync(TEST_FILE_PATH)).toBe(true);
+
+      // 파일 크기 확인 (최소 200KB 이상)
+      const stats = fs.statSync(TEST_FILE_PATH);
+      expect(stats.size).toBeGreaterThan(200 * 1024);
     });
   });
 });
