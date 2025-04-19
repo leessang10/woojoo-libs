@@ -9,6 +9,7 @@ NestJS 기반 프로젝트를 위한 Excel 변환 모듈입니다. ExcelJS를 �
 - 헤더 스타일 (폰트, 배경색) 설정
 - 컬럼 너비 조정
 - Buffer 또는 파일로 출력
+- HTTP 응답으로 직접 전송 지원
 
 ## 설치
 
@@ -42,6 +43,8 @@ export class YourService {
 
 ### 3. Excel 생성
 
+#### Buffer로 반환받기
+
 ```typescript
 const data = [
   { name: '홍길동', age: 20, email: 'hong@test.com' },
@@ -72,6 +75,43 @@ const buffer = await this.excelService.generateExcel(data, options);
 fs.writeFileSync('users.xlsx', buffer);
 ```
 
+#### HTTP 응답으로 직접 전송
+
+```typescript
+@Controller()
+export class ExcelController {
+  constructor(private readonly excelService: ExcelService) {}
+
+  @Get('download')
+  async downloadExcel(@Res() res: Response) {
+    const data = [
+      { name: '홍길동', age: 20, email: 'hong@test.com' },
+      { name: '김철수', age: 25, email: 'kim@test.com' },
+    ];
+
+    const options = {
+      sheetName: '사용자 목록',
+      filename: 'users.xlsx', // 다운로드될 파일 이름
+      columns: [
+        { header: '이름', key: 'name', width: 15 },
+        { header: '나이', key: 'age', width: 10 },
+        { header: '이메일', key: 'email', width: 30 },
+      ],
+      headerStyle: {
+        font: { bold: true, size: 12 },
+        fill: {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFE5E5E5' },
+        },
+      },
+    };
+
+    await this.excelService.sendExcelResponse(res, data, options);
+  }
+}
+```
+
 ## 옵션 상세 설명
 
 ### ExcelOptions 인터페이스
@@ -79,6 +119,7 @@ fs.writeFileSync('users.xlsx', buffer);
 ```typescript
 interface ExcelOptions {
   sheetName?: string; // 시트 이름 (기본값: 'Sheet1')
+  filename?: string; // 다운로드될 파일 이름 (기본값: 'excel.xlsx')
   columns: ExcelColumn[]; // 컬럼 설정 배열
   headerStyle?: {
     // 헤더 스타일 설정 (선택)
@@ -155,35 +196,6 @@ const styledOptions = {
     },
   },
 };
-```
-
-### 3. HTTP 응답으로 전송
-
-```typescript
-@Controller()
-export class ExcelController {
-  constructor(private readonly excelService: ExcelService) {}
-
-  @Get('download')
-  async downloadExcel(@Res() res: Response) {
-    const data = [
-      /* ... */
-    ];
-    const options = {
-      /* ... */
-    };
-
-    const buffer = await this.excelService.generateExcel(data, options);
-
-    res.set({
-      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'Content-Disposition': 'attachment; filename=users.xlsx',
-      'Content-Length': buffer.length,
-    });
-
-    res.send(buffer);
-  }
-}
 ```
 
 ## 주의사항

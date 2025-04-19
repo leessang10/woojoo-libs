@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Fill, Workbook } from 'exceljs';
+import { Response } from 'express';
 import { ExcelOptions } from './interfaces/excel-options.interface';
 
 @Injectable()
@@ -36,6 +37,19 @@ export class ExcelService {
 
     // 버퍼로 변환
     return (await workbook.xlsx.writeBuffer()) as Buffer;
+  }
+
+  async sendExcelResponse(res: Response, data: Record<string, any>[], options: ExcelOptions & { filename?: string }): Promise<void> {
+    const buffer = await this.generateExcel(data, options);
+    const filename = options.filename || 'excel.xlsx';
+
+    res.set({
+      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': `attachment; filename=${filename}`,
+      'Content-Length': buffer.length,
+    });
+
+    res.send(buffer);
   }
 
   private validateData(data: Record<string, any>[], options: ExcelOptions): boolean {
