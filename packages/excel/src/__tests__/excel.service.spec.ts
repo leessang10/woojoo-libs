@@ -180,4 +180,96 @@ describe('ExcelService', () => {
       expect(stats.size).toBeGreaterThan(200 * 1024);
     });
   });
+
+  describe('스트리밍 모드', () => {
+    const TEST_FILE_PATH = path.join(__dirname, 'test-streaming.xlsx');
+
+    afterEach(() => {
+      if (fs.existsSync(TEST_FILE_PATH)) {
+        fs.unlinkSync(TEST_FILE_PATH);
+      }
+    });
+
+    it('스트리밍 모드로 대용량 데이터를 처리할 수 있어야 함', async () => {
+      const data = Array.from({ length: 10000 }, (_, i) => ({
+        id: i + 1,
+        name: `사용자_${i + 1}`,
+        email: `user${i + 1}@example.com`,
+      }));
+
+      const options = {
+        sheetName: '스트리밍_테스트',
+        columns: [
+          { header: 'ID', key: 'id', width: 10 },
+          { header: '이름', key: 'name', width: 20 },
+          { header: '이메일', key: 'email', width: 30 },
+        ],
+        streaming: {
+          enabled: true,
+          chunkSize: 2000,
+          outputPath: TEST_FILE_PATH,
+        },
+      };
+
+      const buffer = await service.generateExcel(data, options);
+      fs.writeFileSync(TEST_FILE_PATH, buffer);
+
+      // 파일이 생성되었는지 확인
+      expect(fs.existsSync(TEST_FILE_PATH)).toBe(true);
+
+      // 파일 크기 확인 (최소 100KB 이상)
+      const stats = fs.statSync(TEST_FILE_PATH);
+      expect(stats.size).toBeGreaterThan(100 * 1024);
+
+      // 생성된 Excel 파일 검증
+      const workbook = new Workbook();
+      await workbook.xlsx.load(buffer);
+      const worksheet = workbook.getWorksheet(options.sheetName);
+      expect(worksheet).toBeDefined();
+      if (worksheet) {
+        expect(worksheet.rowCount).toBeGreaterThan(data.length);
+      }
+    }, 30000); // 타임아웃 30초로 설정
+
+    it('스트리밍 모드에서 청크 크기를 조절할 수 있어야 함', async () => {
+      const data = Array.from({ length: 5000 }, (_, i) => ({
+        id: i + 1,
+        name: `사용자_${i + 1}`,
+        email: `user${i + 1}@example.com`,
+      }));
+
+      const options = {
+        sheetName: '청크크기_테스트',
+        columns: [
+          { header: 'ID', key: 'id', width: 10 },
+          { header: '이름', key: 'name', width: 20 },
+          { header: '이메일', key: 'email', width: 30 },
+        ],
+        streaming: {
+          enabled: true,
+          chunkSize: 1000, // 더 작은 청크 크기
+          outputPath: TEST_FILE_PATH,
+        },
+      };
+
+      const buffer = await service.generateExcel(data, options);
+      fs.writeFileSync(TEST_FILE_PATH, buffer);
+
+      // 파일이 생성되었는지 확인
+      expect(fs.existsSync(TEST_FILE_PATH)).toBe(true);
+
+      // 파일 크기 확인
+      const stats = fs.statSync(TEST_FILE_PATH);
+      expect(stats.size).toBeGreaterThan(50 * 1024);
+
+      // 생성된 Excel 파일 검증
+      const workbook = new Workbook();
+      await workbook.xlsx.load(buffer);
+      const worksheet = workbook.getWorksheet(options.sheetName);
+      expect(worksheet).toBeDefined();
+      if (worksheet) {
+        expect(worksheet.rowCount).toBeGreaterThan(data.length);
+      }
+    }, 30000); // 타임아웃 30초로 설정
+  });
 });

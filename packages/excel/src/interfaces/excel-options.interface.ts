@@ -13,4 +13,9 @@ export interface ExcelOptions {
     font?: Partial<Font>;
     fill?: Partial<Fill>;
   };
+  streaming?: {
+    enabled: boolean;
+    chunkSize?: number;
+    outputPath?: string;
+  };
 }

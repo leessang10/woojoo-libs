@@ -323,3 +323,46 @@ const options = {
 1. `columns` 옵션의 `key` 값은 데이터 객체의 속성 이름과 정확히 일치해야 합니다.
 2. 데이터 객체에 `key`에 해당하는 속성이 없는 경우, 해당 셀은 비어있게 됩니다.
 3. 데이터 객체에 `columns`에 정의되지 않은 추가 속성이 있더라도 Excel 파일에는 포함되지 않습니다.
+
+### 스트리밍 모드 사용
+
+대용량 데이터를 처리할 때는 스트리밍 모드를 사용할 수 있습니다. 이 모드는 메모리 사용량을 최소화하면서 대용량 데이터를 처리할 수 있습니다.
+
+```typescript
+const data = generateLargeData(); // 대용량 데이터 생성
+
+const options = {
+  sheetName: '대용량 데이터',
+  columns: [
+    { header: 'ID', key: 'id', width: 10 },
+    { header: '이름', key: 'name', width: 20 },
+    { header: '이메일', key: 'email', width: 30 },
+  ],
+  streaming: {
+    enabled: true, // 스트리밍 모드 활성화
+    chunkSize: 10000, // 청크 크기 설정 (기본값: 10000)
+    outputPath: 'temp.xlsx', // 임시 파일 경로 (기본값: 'temp.xlsx')
+  },
+};
+
+// 스트리밍 모드로 Excel 생성
+const buffer = await excelService.generateExcel(data, options);
+```
+
+#### 스트리밍 모드 특징
+
+1. 메모리 효율성:
+
+   - 데이터를 청크 단위로 처리하여 메모리 사용량 최소화
+   - 대용량 데이터 처리에 적합
+
+2. 처리 방식:
+
+   - 첫 번째 청크는 헤더를 포함하여 처리
+   - 이후 청크들은 헤더 없이 데이터만 추가
+   - 각 청크는 별도의 워크북으로 처리 후 스트림에 추가
+
+3. 사용 시 주의사항:
+   - 임시 파일이 생성되므로, 처리 후 정리가 필요할 수 있음
+   - 청크 크기는 시스템 메모리와 처리 속도를 고려하여 조정
+   - 스트리밍 모드에서는 일부 고급 스타일링 기능이 제한될 수 있음
