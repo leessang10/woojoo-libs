@@ -8,7 +8,7 @@
     "test": "jest"
   },
   "dependencies": {
-    "@woojoo/common": "1.0.0",
+    "@woojoo/common": "workspace:*",
     "@nestjs/common": "^10.0.0",
     "@nestjs/core": "^10.0.0",
     "@nestjs/jwt": "^10.0.0",
