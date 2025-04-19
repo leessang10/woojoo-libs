@@ -1,23 +1,38 @@
 {
   "name": "@woojoo/excel",
   "version": "1.0.0",
+  "description": "NestJS 기반 프로젝트를 위한 Excel 변환 모듈",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "jest"
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage",
+    "prepare": "npm run build"
   },
+  "keywords": [
+    "nestjs",
+    "excel",
+    "woojoo"
+  ],
+  "author": "Woojoo",
+  "license": "MIT",
   "dependencies": {
-    "@woojoo/common": "1.0.0",
     "@nestjs/common": "^10.0.0",
     "@nestjs/core": "^10.0.0",
-    "exceljs": "^4.3.0"
+    "exceljs": "^4.4.0"
   },
   "devDependencies": {
+    "@nestjs/testing": "^10.0.0",
     "@types/jest": "^29.0.0",
     "@types/node": "^20.0.0",
     "jest": "^29.0.0",
     "ts-jest": "^29.0.0",
     "typescript": "^5.3.3"
+  },
+  "peerDependencies": {
+    "@nestjs/common": "^10.0.0",
+    "@nestjs/core": "^10.0.0"
   }
 }
