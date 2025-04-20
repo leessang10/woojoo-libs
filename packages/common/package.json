@@ -1,6 +1,6 @@
 {
   "name": "@woojoo/common",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "NestJS 기반 프로젝트를 위한 공통 모듈",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

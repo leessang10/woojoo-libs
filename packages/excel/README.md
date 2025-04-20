@@ -1,4 +1,4 @@
-# woojoo-excel
+# @woojoo/excel
 
 NestJS 기반 프로젝트를 위한 Excel 변환 모듈입니다. ExcelJS를 기반으로 하며, 데이터를 Excel 파일로 쉽게 변환할 수 있습니다.
 
@@ -14,7 +14,7 @@ NestJS 기반 프로젝트를 위한 Excel 변환 모듈입니다. ExcelJS를 �
 ## 설치
 
 ```bash
-npm install woojoo-excel
+npm install @woojoo/excel
 ```
 
 ## 사용 방법
@@ -22,7 +22,7 @@ npm install woojoo-excel
 ### 1. 모듈 임포트
 
 ```typescript
-import { ExcelModule } from 'woojoo-excel';
+import { ExcelModule } from '@woojoo/excel';
 
 @Module({
   imports: [ExcelModule],
@@ -30,68 +30,32 @@ import { ExcelModule } from 'woojoo-excel';
 export class AppModule {}
 ```
 
-### 2. 서비스 주입
+### 2. 서비스에서 Excel 생성
 
 ```typescript
-import { ExcelService } from 'woojoo-excel';
+import { ExcelService } from '@woojoo/excel';
+import { Injectable } from '@nestjs/common';
 
 @Injectable()
-export class YourService {
-  constructor(private readonly excelService: ExcelService) {}
-}
-```
+export class UserService {
+  constructor(
+    private readonly excelService: ExcelService,
+    private readonly prismaService: PrismaService, // DB 접근을 위한 서비스
+  ) {}
 
-### 3. Excel 생성
+  async generateUserExcel() {
+    // DB에서 사용자 데이터 조회
+    const users = await this.prismaService.user.findMany({
+      select: {
+        name: true,
+        age: true,
+        email: true,
+      },
+    });
 
-#### Buffer로 반환받기
-
-```typescript
-const data = [
-  { name: '홍길동', age: 20, email: 'hong@test.com' },
-  { name: '김철수', age: 25, email: 'kim@test.com' },
-];
-
-const options = {
-  sheetName: '사용자 목록',
-  columns: [
-    { header: '이름', key: 'name', width: 15 },
-    { header: '나이', key: 'age', width: 10 },
-    { header: '이메일', key: 'email', width: 30 },
-  ],
-  headerStyle: {
-    font: { bold: true, size: 12 },
-    fill: {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FFE5E5E5' },
-    },
-  },
-};
-
-// Buffer로 반환
-const buffer = await this.excelService.generateExcel(data, options);
-
-// 파일로 저장
-fs.writeFileSync('users.xlsx', buffer);
-```
-
-#### HTTP 응답으로 직접 전송
-
-```typescript
-@Controller()
-export class ExcelController {
-  constructor(private readonly excelService: ExcelService) {}
-
-  @Get('download')
-  async downloadExcel(@Res() res: Response) {
-    const data = [
-      { name: '홍길동', age: 20, email: 'hong@test.com' },
-      { name: '김철수', age: 25, email: 'kim@test.com' },
-    ];
-
+    // Excel 생성 옵션 설정
     const options = {
       sheetName: '사용자 목록',
-      filename: 'users.xlsx', // 다운로드될 파일 이름
       columns: [
         { header: '이름', key: 'name', width: 15 },
         { header: '나이', key: 'age', width: 10 },
@@ -107,7 +71,33 @@ export class ExcelController {
       },
     };
 
-    await this.excelService.sendExcelResponse(res, data, options);
+    // Excel 파일 생성 (Buffer 반환)
+    return this.excelService.generateExcel(users, options);
+  }
+}
+```
+
+### 3. 컨트롤러에서 Excel 다운로드 처리
+
+```typescript
+import { ExcelService } from '@woojoo/excel';
+import { Controller, Get, Res } from '@nestjs/common';
+import { Response } from 'express';
+import { UserService } from './user.service';
+
+@Controller('users')
+export class UserController {
+  constructor(private readonly userService: UserService, private readonly excelService: ExcelService) {}
+
+  @Get('excel')
+  async downloadUserExcel(@Res() res: Response) {
+    // 서비스에서 Excel Buffer 생성
+    const buffer = await this.userService.generateUserExcel();
+
+    // HTTP 응답으로 Excel 파일 전송
+    await this.excelService.sendExcelResponse(res, buffer, {
+      filename: 'users.xlsx', // 다운로드될 파일 이름
+    });
   }
 }
 ```
