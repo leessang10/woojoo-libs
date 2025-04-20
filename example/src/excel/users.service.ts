@@ -1,25 +1,28 @@
-import { Controller, Get, Res } from '@nestjs/common';
-import { Fill } from 'exceljs';
-import { Response } from 'express';
+import { Injectable } from '@nestjs/common';
 import { ExcelService } from 'woojoo-excel';
 
-@Controller('excel')
-export class ExcelController {
+@Injectable()
+export class UsersService {
   constructor(private readonly excelService: ExcelService) {}
 
-  @Get('download')
-  async downloadExcel(@Res() res: Response) {
-    const data = [
-      { name: '홍길동', age: 20, email: 'hong@test.com' },
-      { name: '김철수', age: 25, email: 'kim@test.com' },
-    ];
+  async generateUsersExcel(): Promise<Buffer> {
+    // const users = await this.prisma.user.findMany(); // Prisma 사용 시
+    // const users = await this.usersService.findAll(); // TypeORM 사용 시
 
-    const options = {
-      sheetName: '사용자 목록',
+    // 테스트 데이터 예시
+    const users = [
+      { name: '홍길동', email: 'hong@test.com', age: 20 },
+      { name: '김철수', email: 'kim@test.com', age: 25 },
+      { name: '이영희', email: 'lee@test.com', age: 30 },
+      { name: '박영수', email: 'park@test.com', age: 35 },
+      { name: '최영희', email: 'choi@test.com', age: 40 },
+      { name: '정영수', email: 'jeong@test.com', age: 45 },
+    ];
+    return this.excelService.generateExcel(users, {
       columns: [
         { header: '이름', key: 'name', width: 15 },
+        { header: '이메일', key: 'email', width: 20 },
         { header: '나이', key: 'age', width: 10 },
-        { header: '이메일', key: 'email', width: 30 },
       ],
       headerStyle: {
         font: { bold: true, size: 12 },
@@ -27,18 +30,13 @@ export class ExcelController {
           type: 'pattern' as const,
           pattern: 'solid',
           fgColor: { argb: 'FFE5E5E5' },
-        } as Partial<Fill>,
+        },
       },
-    };
-
-    const excelBuffer = await this.excelService.generateExcel(data, options);
-    await this.excelService.sendExcelResponse(res, 'users.xlsx', excelBuffer);
+    });
   }
 
-  @Get('download-large')
-  async downloadLargeExcel(@Res() res: Response) {
-    // 100,000행의 대용량 데이터 생성
-    const data = Array.from({ length: 100000 }, (_, i) => ({
+  async generateLargeUsersExcel(): Promise<Buffer> {
+    const users = Array.from({ length: 100000 }, (_, i) => ({
       id: i + 1,
       name: `사용자_${i + 1}`,
       email: `user${i + 1}@example.com`,
@@ -47,8 +45,7 @@ export class ExcelController {
       joinDate: new Date(2020, 0, 1 + i).toISOString().split('T')[0],
     }));
 
-    const options = {
-      sheetName: '대용량_사용자_목록',
+    return this.excelService.generateExcel(users, {
       columns: [
         { header: 'ID', key: 'id', width: 10 },
         { header: '이름', key: 'name', width: 20 },
@@ -63,15 +60,12 @@ export class ExcelController {
           type: 'pattern' as const,
           pattern: 'solid',
           fgColor: { argb: 'FFE5E5E5' },
-        } as Partial<Fill>,
+        },
       },
       streaming: {
         enabled: true,
         chunkSize: 10000,
       },
-    };
-
-    const excelBuffer = await this.excelService.generateExcel(data, options);
-    await this.excelService.sendExcelResponse(res, 'large-users.xlsx', excelBuffer);
+    });
   }
 }

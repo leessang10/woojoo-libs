@@ -5,6 +5,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   await app.listen(3000);
   console.log('Application is running on: http://localhost:3000');
-  console.log('Excel endpoint: http://localhost:3000/excel');
+  console.log('Excel endpoint: http://localhost:3000/users/excel/export');
+  console.log('Large Excel endpoint: http://localhost:3000/users/excel/export-large');
 }
 bootstrap();
