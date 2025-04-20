@@ -8,9 +8,6 @@ importers:
 
   .:
     devDependencies:
-      '@types/express':
-        specifier: ^4.17.21
-        version: 4.17.21
       lerna:
         specifier: ^7.0.0
         version: 7.4.2(encoding@0.1.13)
@@ -150,9 +147,6 @@ importers:
       '@types/express':
         specifier: ^4.17.21
         version: 4.17.21
-      '@types/express-serve-static-core':
-        specifier: ^4.17.21
-        version: 4.19.6
       '@types/jest':
         specifier: ^29.0.0
         version: 29.5.14
