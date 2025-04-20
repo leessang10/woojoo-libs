@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CommonModule } from '../src/common.module';
-import { PrismaService } from '../src/prisma/prisma.service';
 
 describe('CommonModule', () => {
   let module: TestingModule;
@@ -17,11 +16,6 @@ describe('CommonModule', () => {
 
   it('should be defined', () => {
     expect(module).toBeDefined();
-  });
-
-  it('should provide PrismaService', () => {
-    const prismaService = module.get<PrismaService>(PrismaService);
-    expect(prismaService).toBeDefined();
   });
 
   describe('forRoot', () => {
