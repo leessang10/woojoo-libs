@@ -79,17 +79,14 @@ export class ExcelService {
     return (await workbook.xlsx.writeBuffer()) as Buffer;
   }
 
-  async sendExcelResponse(res: Response, data: Record<string, any>[], options: ExcelOptions & { filename?: string }): Promise<void> {
-    const buffer = await this.generateExcel(data, options);
-    const filename = options.filename || 'excel.xlsx';
-
+  async sendExcelResponse(res: Response, filename: string, excelBuffer: Buffer): Promise<void> {
     res.set({
       'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       'Content-Disposition': `attachment; filename=${filename}`,
-      'Content-Length': buffer.length,
+      'Content-Length': excelBuffer.length,
     });
 
-    res.send(buffer);
+    res.send(excelBuffer);
   }
 
   private validateData(data: Record<string, any>[], options: ExcelOptions): boolean {

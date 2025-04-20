@@ -16,7 +16,6 @@ export class ExcelController {
 
     const options = {
       sheetName: '사용자 목록',
-      filename: 'users.xlsx',
       columns: [
         { header: '이름', key: 'name', width: 15 },
         { header: '나이', key: 'age', width: 10 },
@@ -32,7 +31,8 @@ export class ExcelController {
       },
     };
 
-    await this.excelService.sendExcelResponse(res, data, options);
+    const excelBuffer = await this.excelService.generateExcel(data, options);
+    await this.excelService.sendExcelResponse(res, 'users.xlsx', excelBuffer);
   }
 
   @Get('download-large')
@@ -49,7 +49,6 @@ export class ExcelController {
 
     const options = {
       sheetName: '대용량_사용자_목록',
-      filename: 'large-users.xlsx',
       columns: [
         { header: 'ID', key: 'id', width: 10 },
         { header: '이름', key: 'name', width: 20 },
@@ -72,6 +71,7 @@ export class ExcelController {
       },
     };
 
-    await this.excelService.sendExcelResponse(res, data, options);
+    const excelBuffer = await this.excelService.generateExcel(data, options);
+    await this.excelService.sendExcelResponse(res, 'large-users.xlsx', excelBuffer);
   }
 }
