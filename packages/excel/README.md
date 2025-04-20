@@ -1,5 +1,9 @@
 # @woojoo/excel
 
+[![GitHub](https://img.shields.io/badge/GitHub-leessang10%2Fwoojoo--libs-blue?style=flat-square&logo=github)](https://github.com/leessang10/woojoo-libs)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE.md)
+[![NPM Version](https://img.shields.io/npm/v/@woojoo/excel.svg)](https://www.npmjs.com/package/@woojoo/excel)
+
 NestJS 기반 프로젝트를 위한 Excel 변환 모듈입니다.
 
 ExcelJS를 기반으로 하며, 데이터를 Excel 파일로 쉽게 변환할 수 있습니다.
@@ -32,19 +36,16 @@ import { ExcelModule } from '@woojoo/excel';
 export class AppModule {}
 ```
 
-### 2. User 서비스에서 Excel 생성 예시
+### 2. 서비스 구현
 
 ```typescript
 import { ExcelService } from '@woojoo/excel';
 import { Injectable } from '@nestjs/common';
+import { PrismaService } from '@woojoo/common';
 
 @Injectable()
 export class UserService {
-  constructor(
-    private readonly excelService: ExcelService,
-    // DB 접근을 위한 서비스(TypeORM, MongoDB, etc..)
-    private readonly prismaService: PrismaService,
-  ) {}
+  constructor(private readonly excelService: ExcelService, private readonly prismaService: PrismaService) {}
 
   async generateUserExcel() {
     // DB에서 사용자 데이터 조회
@@ -80,7 +81,7 @@ export class UserService {
 }
 ```
 
-### 3. 컨트롤러에서 Excel 다운로드 처리
+### 3. 컨트롤러 구현
 
 ```typescript
 import { ExcelService } from '@woojoo/excel';
@@ -101,6 +102,22 @@ export class UserController {
     await this.excelService.sendExcelResponse(res, 'users.xlsx', buffer);
   }
 }
+```
+
+### 4. 모듈 구성
+
+```typescript
+import { Module } from '@nestjs/common';
+import { ExcelModule } from '@woojoo/excel';
+import { UserService } from './user.service';
+import { UserController } from './user.controller';
+
+@Module({
+  imports: [ExcelModule],
+  controllers: [UserController],
+  providers: [UserService],
+})
+export class UserModule {}
 ```
 
 ## 옵션 상세 설명
