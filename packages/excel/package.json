@@ -4,6 +4,14 @@
   "description": "NestJS 기반 프로젝트를 위한 Excel 변환 모듈",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leessang10/woojoo-libs.git"
+  },
+  "bugs": {
+    "url": "https://github.com/leessang10/woojoo-libs/issues"
+  },
+  "homepage": "https://github.com/leessang10/woojoo-libs#readme",
   "scripts": {
     "build": "tsc",
     "test": "jest",

@@ -1,5 +1,9 @@
 # Woojoo Libs: NestJS 공용 모듈 모노레포 시스템
 
+[![GitHub](https://img.shields.io/badge/GitHub-leessang10%2Fwoojoo--libs-blue?style=flat-square&logo=github)](https://github.com/leessang10/woojoo-libs)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE.md)
+[![NPM Version](https://img.shields.io/npm/v/@woojoo/excel.svg)](https://www.npmjs.com/package/@woojoo/excel)
+
 이 리포지토리는 NestJS 기반 프로젝트들에서 공통적으로 사용되는 기능을 모듈 단위로 분리하여 NPM 패키지 형태로 배포하고 재사용할 수 있도록 구성된 모노레포입니다.
 
 모든 모듈은 `@woojoo/모듈명` 형태로 사용되며, 각 모듈은 NestJS의 Dynamic Module 패턴(`forRoot`)을 지원합니다.

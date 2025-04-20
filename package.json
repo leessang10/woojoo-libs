@@ -4,6 +4,14 @@
   "workspaces": [
     "packages/*"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leessang10/woojoo-libs.git"
+  },
+  "bugs": {
+    "url": "https://github.com/leessang10/woojoo-libs/issues"
+  },
+  "homepage": "https://github.com/leessang10/woojoo-libs#readme",
   "scripts": {
     "bootstrap": "lerna bootstrap",
     "build": "lerna run build",
