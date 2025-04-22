@@ -1,42 +1,43 @@
 import { Injectable } from '@nestjs/common';
-import * as fs from 'fs';
+import { Response } from 'express';
 import * as Handlebars from 'handlebars';
-import * as path from 'path';
 import * as puppeteer from 'puppeteer';
-import { PdfModuleOptions } from './interfaces/pdf-module-options.interface';
-import { PdfOptions, PdfTemplate } from './interfaces/pdf-options.interface';
+import { HbsToPdfOptions, IPdfService, PdfResponseOptions } from './interfaces/pdf-options.interface';
 
 @Injectable()
-export class PdfService {
-  private readonly options: PdfModuleOptions;
+export class PdfService implements IPdfService {
+  constructor() {}
 
-  constructor(options: PdfModuleOptions) {
-    this.options = options;
-  }
+  /**
+   * Handlebars 템플릿을 PDF로 변환합니다.
+   * @param options HBS 템플릿과 PDF 생성 옵션
+   * @returns PDF 버퍼
+   */
+  async hbsToPdf(options: HbsToPdfOptions): Promise<Buffer> {
+    const { template, data, options: pdfOptions, styles } = options;
 
-  async generatePdf(template: PdfTemplate): Promise<Buffer> {
-    const { template: templateName, data, options } = template;
+    // Puppeteer가 자동으로 Chrome을 찾거나 다운로드합니다
     const browser = await puppeteer.launch({
-      headless: true,
-      channel: 'chrome',
-      executablePath: process.platform === 'darwin' 
-        ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-        : process.platform === 'win32'
-        ? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
-        : '/usr/bin/google-chrome'
+      headless: true
     });
 
     try {
       const page = await browser.newPage();
-      const templateContent = await this.loadTemplate(templateName);
-      const html = Handlebars.compile(templateContent)(data);
+      
+      // HBS 템플릿에 데이터 주입
+      const hbsTemplate = Handlebars.compile(template);
+      const html = hbsTemplate(data || {});
 
-      await page.setContent(html, {
+      // HTML에 스타일 추가
+      const htmlWithStyles = this.wrapWithHtml(html, styles);
+
+      // HTML 렌더링
+      await page.setContent(htmlWithStyles, {
         waitUntil: 'networkidle0',
       });
 
-      const pdfOptions = this.mergeOptions(options);
-      const pdfBuffer = await page.pdf(pdfOptions);
+      // PDF 생성
+      const pdfBuffer = await page.pdf(pdfOptions || {});
 
       return Buffer.from(pdfBuffer);
     } finally {
@@ -44,19 +45,41 @@ export class PdfService {
     }
   }
 
-  private async loadTemplate(templateName: string): Promise<string> {
-    const templatePath = path.join(this.options.templatePath, `${templateName}.hbs`);
-    try {
-      return fs.readFileSync(templatePath, 'utf-8');
-    } catch (error) {
-      throw new Error(`Template ${templateName} not found at ${templatePath}`);
-    }
+  /**
+   * PDF 버퍼를 HTTP 응답으로 전송합니다.
+   * @param res Express Response 객체
+   * @param filename 다운로드될 파일 이름
+   * @param buffer PDF 버퍼
+   * @param options 응답 옵션
+   */
+  async sendPdfResponse(
+    res: Response,
+    filename: string,
+    buffer: Buffer,
+    options?: PdfResponseOptions
+  ): Promise<void> {
+    const { inline = false, charset = 'UTF-8' } = options || {};
+    
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      `${inline ? 'inline' : 'attachment'}; filename*=${charset}''${encodeURIComponent(filename)}`
+    );
+    res.send(buffer);
   }
 
-  private mergeOptions(options?: PdfOptions): PdfOptions {
-    return {
-      ...this.options.defaultOptions,
-      ...options,
-    };
+  private wrapWithHtml(content: string, styles?: string): string {
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          ${styles ? `<style>${styles}</style>` : ''}
+        </head>
+        <body>
+          ${content}
+        </body>
+      </html>
+    `;
   }
 } 
