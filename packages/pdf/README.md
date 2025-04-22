@@ -1,6 +1,26 @@
 # @woojoo/pdf
 
-NestJS 기반의 PDF 생성 모듈입니다. HTML 템플릿을 PDF로 변환할 수 있습니다.
+NestJS 기반의 PDF 생성 모듈입니다. Handlebars 템플릿을 PDF로 변환할 수 있습니다.
+
+## 동작 프로세스
+
+PDF 생성 프로세스는 다음과 같은 단계로 진행됩니다:
+
+![PDF 생성 프로세스](docs/images/process-flow.svg)
+
+1. **입력**
+   - HBS 템플릿: Handlebars 문법으로 작성된 템플릿 파일
+   - 데이터: 템플릿에 주입될 JSON 데이터
+   - CSS 스타일: PDF 스타일링을 위한 CSS
+
+2. **처리**
+   - Handlebars 엔진이 템플릿과 데이터를 결합하여 HTML 생성
+   - 생성된 HTML에 CSS 스타일 적용
+   - Puppeteer가 Chrome을 통해 HTML을 PDF로 변환
+
+3. **출력**
+   - PDF 버퍼 생성
+   - 파일 다운로드 또는 브라우저에서 직접 보기 가능
 
 ## 설치
 
@@ -72,16 +92,21 @@ export class AppModule {}
 ```typescript
 import { Injectable } from '@nestjs/common';
 import { PdfService } from '@woojoo/pdf';
+import { Response } from 'express';
 
 @Injectable()
 export class YourService {
   constructor(private readonly pdfService: PdfService) {}
 
-  async generatePdf() {
-    const html = `
+  async generatePdf(res: Response) {
+    // HBS 템플릿 준비
+    const template = `
       <html>
         <head>
           <meta charset="UTF-8">
+          <style>
+            body { font-family: Arial, sans-serif; }
+          </style>
         </head>
         <body>
           <h1>{{title}}</h1>
@@ -90,15 +115,9 @@ export class YourService {
       </html>
     `;
 
-    const styles = `
-      body {
-        font-family: Arial, sans-serif;
-        padding: 20px;
-      }
-    `;
-
-    const pdfBuffer = await this.pdfService.htmlToPdf({
-      html,
+    // PDF 생성
+    const pdfBuffer = await this.pdfService.hbsToPdf({
+      template,
       data: {
         title: '제목',
         content: '내용',
@@ -112,10 +131,15 @@ export class YourService {
           left: '20mm',
         },
       },
-      styles,
     });
 
-    return pdfBuffer;
+    // PDF 파일 다운로드
+    await this.pdfService.sendPdfResponse(res, 'document.pdf', pdfBuffer);
+
+    // 또는 브라우저에서 열기
+    await this.pdfService.sendPdfResponse(res, 'document.pdf', pdfBuffer, { 
+      inline: true 
+    });
   }
 }
 ```
@@ -124,19 +148,31 @@ export class YourService {
 
 ### PdfService
 
-#### htmlToPdf(options: HtmlToPdfOptions): Promise<Buffer>
+#### hbsToPdf(options: HbsToPdfOptions): Promise<Buffer>
 
-HTML 문자열을 PDF로 변환합니다.
+Handlebars 템플릿을 PDF로 변환합니다.
 
 **매개변수:**
-- `options: HtmlToPdfOptions`
-  - `html: string` - HTML 템플릿 문자열 (Handlebars 문법 지원)
+- `options: HbsToPdfOptions`
+  - `template: string` - Handlebars 템플릿 문자열
   - `data?: Record<string, any>` - 템플릿에 주입할 데이터
   - `options?: PdfOptions` - PDF 생성 옵션
   - `styles?: string` - CSS 스타일
 
 **반환값:**
 - `Promise<Buffer>` - 생성된 PDF의 버퍼
+
+#### sendPdfResponse(res: Response, filename: string, buffer: Buffer, options?: PdfResponseOptions): Promise<void>
+
+PDF 버퍼를 HTTP 응답으로 전송합니다.
+
+**매개변수:**
+- `res: Response` - Express Response 객체
+- `filename: string` - 다운로드될 파일 이름
+- `buffer: Buffer` - PDF 버퍼
+- `options?: PdfResponseOptions`
+  - `inline?: boolean` - 브라우저에서 열기 여부 (기본값: false)
+  - `charset?: string` - 파일명 인코딩 (기본값: UTF-8)
 
 ### 인터페이스
 
@@ -156,11 +192,16 @@ interface PdfOptions {
   height?: string | number;
 }
 
-interface HtmlToPdfOptions {
-  html: string;
-  data?: Record<string, any>;
-  options?: PdfOptions;
-  styles?: string;
+interface HbsToPdfOptions {
+  template: string;  // Handlebars 템플릿 문자열
+  data?: Record<string, any>;  // 템플릿에 주입할 데이터
+  options?: PdfOptions;  // PDF 생성 옵션
+  styles?: string;  // CSS 스타일
+}
+
+interface PdfResponseOptions {
+  inline?: boolean;  // true면 브라우저에서 열기, false면 다운로드
+  charset?: string;  // 파일명 인코딩
 }
 ```
 
