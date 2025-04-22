@@ -105,57 +105,207 @@ export class AppModule {}
 
 ### PDF 생성 예제
 
+#### 1. 기본 사용법
+
 ```typescript
 import { Injectable } from '@nestjs/common';
 import { PdfService } from '@woojoo/pdf';
-import { Response } from 'express';
 
 @Injectable()
-export class YourService {
+export class SimpleService {
   constructor(private readonly pdfService: PdfService) {}
 
-  async generatePdf(res: Response) {
-    // HBS 템플릿 준비
-    const template = `
-      <html>
-        <head>
-          <meta charset="UTF-8">
-          <style>
-            body { font-family: Arial, sans-serif; }
-          </style>
-        </head>
-        <body>
-          <h1>{{title}}</h1>
-          <p>{{content}}</p>
-        </body>
-      </html>
-    `;
-
-    // PDF 생성
-    const pdfBuffer = await this.pdfService.hbsToPdf({
-      template,
-      data: {
-        title: '제목',
-        content: '내용',
-      },
-      options: {
-        format: 'A4',
-        margin: {
-          top: '20mm',
-          right: '20mm',
-          bottom: '20mm',
-          left: '20mm',
-        },
-      },
+  async generateSimplePdf() {
+    // 1. 가장 기본적인 사용
+    return this.pdfService.hbsToPdf({
+      template: '<h1>{{title}}</h1>',
+      data: { title: '안녕하세요!' },
     });
+  }
+}
+```
 
-    // PDF 파일 다운로드
-    await this.pdfService.sendPdfResponse(res, 'document.pdf', pdfBuffer);
+#### 2. 템플릿 작성 방법
 
-    // 또는 브라우저에서 열기
-    await this.pdfService.sendPdfResponse(res, 'document.pdf', pdfBuffer, { 
-      inline: true 
-    });
+##### 2.1 문자열로 직접 작성
+
+```typescript
+const template = `
+  <div>
+    <h1>{{title}}</h1>
+    <p>{{content}}</p>
+  </div>
+`;
+
+await pdfService.hbsToPdf({ template, data });
+```
+
+##### 2.2 파일에서 불러오기
+
+```typescript
+import * as fs from 'fs/promises';
+import * as path from 'path';
+
+const template = await fs.readFile(
+  path.join(__dirname, 'templates', 'document.hbs'),
+  'utf-8'
+);
+
+await pdfService.hbsToPdf({ template, data });
+```
+
+#### 3. 스타일 적용 방법
+
+##### 3.1 인라인 스타일
+
+```typescript
+const template = `
+  <div style="color: blue;">
+    <h1>{{title}}</h1>
+  </div>
+`;
+```
+
+##### 3.2 스타일 태그 사용
+
+```typescript
+const template = `
+  <style>
+    h1 { color: blue; }
+    .content { margin: 20px; }
+  </style>
+  <div class="content">
+    <h1>{{title}}</h1>
+  </div>
+`;
+```
+
+##### 3.3 CSS 파일의 스타일 적용
+
+```typescript
+const styles = await fs.readFile(
+  path.join(__dirname, 'styles', 'document.css'),
+  'utf-8'
+);
+
+await pdfService.hbsToPdf({ template, styles, data });
+```
+
+#### 4. 데이터 바인딩 예제
+
+##### 4.1 기본 데이터
+
+```typescript
+const data = {
+  title: '제목',
+  content: '내용',
+};
+```
+
+##### 4.2 배열 데이터
+
+```typescript
+const template = `
+  <ul>
+    {{#each items}}
+      <li>{{name}}: {{price}}원</li>
+    {{/each}}
+  </ul>
+`;
+
+const data = {
+  items: [
+    { name: '상품 A', price: 1000 },
+    { name: '상품 B', price: 2000 },
+  ],
+};
+```
+
+##### 4.3 조건부 렌더링
+
+```typescript
+const template = `
+  {{#if isPaid}}
+    <div class="paid">{{status}}</div>
+  {{else}}
+    <div class="unpaid">미결제</div>
+  {{/if}}
+`;
+
+const data = {
+  isPaid: true,
+  status: '결제완료',
+};
+```
+
+#### 5. PDF 옵션 설정
+
+##### 5.1 페이지 크기
+
+```typescript
+await pdfService.hbsToPdf({
+  template,
+  data,
+  options: {
+    format: 'A4',  // 'A3' | 'Letter' | 'Legal' | 'Tabloid'
+  },
+});
+```
+
+##### 5.2 페이지 방향
+
+```typescript
+await pdfService.hbsToPdf({
+  template,
+  data,
+  options: {
+    landscape: true,  // true: 가로, false: 세로
+  },
+});
+```
+
+##### 5.3 여백 설정
+
+```typescript
+await pdfService.hbsToPdf({
+  template,
+  data,
+  options: {
+    margin: {
+      top: '20mm',
+      right: '15mm',
+      bottom: '20mm',
+      left: '15mm',
+    },
+  },
+});
+```
+
+#### 6. 컨트롤러에서 PDF 파일 응답 보내기
+
+```typescript
+import { Controller, Get, Res } from '@nestjs/common';
+import { Response } from 'express';
+import { PdfService } from '@woojoo/pdf';
+import { SimpleService } from './simple.service';
+
+@Controller('pdf')
+export class PdfController {
+  constructor(
+    private readonly simpleService: SimpleService,
+    private readonly pdfService: PdfService,
+  ) {}
+
+  @Get('download')
+  async download(@Res() res: Response) {
+    const buffer = await this.simpleService.generateSimplePdf();
+    await this.pdfService.sendPdfResponse(res, '문서.pdf', buffer);
+  }
+
+  @Get('preview')
+  async preview(@Res() res: Response) {
+    const buffer = await this.simpleService.generateSimplePdf();
+    await this.pdfService.sendPdfResponse(res, '문서.pdf', buffer, { inline: true });
   }
 }
 ```
