@@ -6,7 +6,7 @@ NestJS 기반의 PDF 생성 모듈입니다. Handlebars 템플릿을 PDF로 변�
 
 PDF 생성 프로세스는 다음과 같은 단계로 진행됩니다:
 
-![PDF 생성 프로세스](docs/images/process-flow.svg)
+![PDF 생성 프로세스](https://raw.githubusercontent.com/leessang10/woojoo-libs/main/packages/pdf/docs/images/process-flow.svg)
 
 1. **입력**
    - HBS 템플릿: Handlebars 문법으로 작성된 템플릿 파일
