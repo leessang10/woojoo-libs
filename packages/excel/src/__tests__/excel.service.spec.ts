@@ -96,7 +96,7 @@ describe('ExcelService', () => {
 
     it('should throw error for invalid data', async () => {
       const invalidData = [{ invalidKey: 'value' }];
-      await expect(service.generateExcel(invalidData, options)).rejects.toThrow('Invalid data structure');
+      await expect(service.generateExcel(invalidData, options)).rejects.toThrow('데이터 구조가 유효하지 않습니다');
     });
   });
 
