@@ -13,7 +13,7 @@
 ## 1. 프로젝트 목표
 
 - 중복되는 기능(인증, 이메일, 엑셀, PDF 등)을 모듈화하여 재사용성과 유지보수성을 높임
-- 모든 기능은 NPM 패키지로 배포되고, NestJS 프로젝트에 `npm install`로 쉽게 추가 가능
+- 모든 기능은 NPM 패키지로 배포되고, NestJS 프로젝트에 `pnpm add`로 쉽게 추가 가능
 - 모노레포 기반으로 개발/배포/테스트 자동화
 
 ---
@@ -21,7 +21,7 @@
 ## 2. 사용 스택 및 도구
 
 - **프레임워크**: NestJS
-- **모노레포 관리**: Lerna + NPM Workspaces
+- **모노레포 관리**: pnpm Workspaces
 - **빌드 도구**: TypeScript (`tsc`)
 - **테스트 프레임워크**: Jest
 - **CI/CD**: GitHub Actions
@@ -42,8 +42,7 @@ woojoo-libs/
 │   ├── common/         # 공용 유틸리티 및 인터페이스
 ├── example/            # 샘플 NestJS 앱 (테스트용)
 ├── tsconfig.base.json  # 공통 TypeScript 설정
-├── package.json        # NPM workspaces 및 스크립트
-├── lerna.json          # Lerna 설정
+├── package.json        # pnpm workspaces 및 스크립트
 └── .github/workflows/  # CI/CD 자동화 스크립트
 ```
 
@@ -54,21 +53,21 @@ woojoo-libs/
 ### 개발 환경 설정
 
 ```bash
+# pnpm 설치 (아직 설치하지 않은 경우)
+$ npm install -g pnpm
+
 # 리포지토리 클론
 $ git clone https://github.com/leessang10/woojoo-libs.git
 $ cd woojoo-libs
 
 # 의존성 설치
-$ npm install
-
-# Lerna bootstrap으로 내부 모듈 연결
-$ npm run bootstrap
+$ pnpm install
 
 # 전체 빌드
-$ npm run build
+$ pnpm run build
 
 # 테스트 실행
-$ npm run test
+$ pnpm run test
 ```
 
 ### 개별 모듈 개발
@@ -78,13 +77,13 @@ $ npm run test
 $ cd packages/pdf
 
 # 모듈 의존성 설치
-$ npm install
+$ pnpm install
 
 # 모듈 빌드
-$ npm run build
+$ pnpm run build
 
 # 모듈 테스트
-$ npm run test
+$ pnpm run test
 ```
 
 ### 샘플 앱 실행
@@ -94,14 +93,14 @@ $ npm run test
 $ cd example
 
 # 의존성 설치
-$ npm install
+$ pnpm install
 
 # 환경 변수 설정
 $ cp .env.example .env
 $ vi .env  # 필요한 환경 변수 설정
 
 # 앱 실행
-$ npm run start:dev
+$ pnpm run start:dev
 ```
 
 ---
@@ -276,17 +275,17 @@ const buffer = await excelService.generateExcelFile(users, {
 $ cd packages/pdf
 
 # 버전 업데이트
-$ npm version patch  # 또는 minor, major
+$ pnpm version patch  # 또는 minor, major
 
 # NPM에 배포
-$ npm publish --access public
+$ pnpm publish --access public
 ```
 
 ### 전체 패키지 배포
 
 ```bash
 # 루트 디렉토리에서
-$ npm run publish:all
+$ pnpm -r publish --access public
 ```
 
 ### 버전 관리 규칙
@@ -327,17 +326,22 @@ jobs:
           node-version: '18'
           registry-url: 'https://registry.npmjs.org'
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
       - name: Install dependencies
-        run: npm install
+        run: pnpm install
 
       - name: Build
-        run: npm run build
+        run: pnpm run build
 
       - name: Run tests
-        run: npm run test
+        run: pnpm run test
 
       - name: Publish packages
-        run: npx lerna publish from-package --yes
+        run: pnpm -r publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 ```
@@ -369,14 +373,14 @@ jobs:
 
 ```bash
 # 모든 모듈 테스트 실행
-$ npm run test
+$ pnpm run test
 
 # 특정 모듈만 테스트
 $ cd packages/auth
-$ npm run test
+$ pnpm run test
 
 # 테스트 커버리지 확인
-$ npm run test:cov
+$ pnpm run test:cov
 ```
 
 각 모듈은 `jest` 기반 테스트를 포함해야 하며, 필수 비즈니스 로직은 최소 80% 이상의 커버리지를 유지합니다.
@@ -386,7 +390,7 @@ $ npm run test:cov
 ## 10. 참고 문서
 
 - [NestJS 공식 문서](https://docs.nestjs.com)
-- [Lerna 공식 문서](https://lerna.js.org)
+- [pnpm 공식 문서](https://pnpm.io/ko/)
 - [GitHub Actions 가이드](https://docs.github.com/en/actions)
 - [Handlebars 템플릿 가이드](https://handlebarsjs.com/guide/)
 - [Puppeteer API 문서](https://pptr.dev/)
@@ -398,4 +402,4 @@ $ npm run test:cov
 - 새로운 모듈을 추가할 경우, `packages/모듈명` 디렉토리에 Nest 구조로 생성합니다.
 - 기존 공통 로직은 `@woojoo/common`으로 이동하여 중복 제거합니다.
 - 모든 변경사항은 PR로 제출하며, 테스트를 포함해야 합니다.
-- PR 제출 전에 `npm run lint`와 `npm run test`를 실행하여 코드 품질을 확인합니다.
+- PR 제출 전에 `pnpm run lint`와 `pnpm run test`를 실행하여 코드 품질을 확인합니다.

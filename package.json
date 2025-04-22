@@ -1,9 +1,21 @@
 {
   "name": "woojoo-libs",
+  "version": "1.0.0",
   "private": true,
+  "scripts": {
+    "build": "pnpm -r run build",
+    "test": "pnpm -r run test",
+    "lint": "pnpm -r run lint",
+    "format": "pnpm -r run format"
+  },
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "example"
   ],
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/leessang10/woojoo-libs.git"
@@ -12,12 +24,6 @@
     "url": "https://github.com/leessang10/woojoo-libs/issues"
   },
   "homepage": "https://github.com/leessang10/woojoo-libs#readme",
-  "scripts": {
-    "bootstrap": "lerna bootstrap",
-    "build": "lerna run build",
-    "test": "lerna run test",
-    "clean": "rimraf packages/*/dist"
-  },
   "devDependencies": {
     "lerna": "^7.0.0",
     "typescript": "^5.3.3",
