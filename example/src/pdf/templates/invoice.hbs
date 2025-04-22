@@ -1,0 +1,70 @@
+<html>
+  <head>
+    <meta charset='UTF-8' />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+      }
+      .header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      .invoice-info {
+        margin-bottom: 30px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 30px;
+      }
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+      }
+      th {
+        background-color: #f2f2f2;
+      }
+      .total {
+        text-align: right;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <div class='header'>
+      <h1>인보이스</h1>
+    </div>
+
+    <div class='invoice-info'>
+      <p><strong>인보이스 번호:</strong> {{invoiceNumber}}</p>
+      <p><strong>날짜:</strong> {{date}}</p>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>상품명</th>
+          <th>가격</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each items}}
+          <tr>
+            <td>{{name}}</td>
+            <td>{{price}}원</td>
+          </tr>
+        {{/each}}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td class='total'>총액:</td>
+          <td>{{total}}원</td>
+        </tr>
+      </tfoot>
+    </table>
+  </body>
+</html>

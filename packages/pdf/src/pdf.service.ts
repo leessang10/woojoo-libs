@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import * as fs from 'fs';
 import * as Handlebars from 'handlebars';
+import * as path from 'path';
 import * as puppeteer from 'puppeteer';
 import { PdfModuleOptions } from './interfaces/pdf-module-options.interface';
 import { PdfOptions, PdfTemplate } from './interfaces/pdf-options.interface';
@@ -15,7 +17,13 @@ export class PdfService {
   async generatePdf(template: PdfTemplate): Promise<Buffer> {
     const { template: templateName, data, options } = template;
     const browser = await puppeteer.launch({
-      headless: 'new',
+      headless: true,
+      channel: 'chrome',
+      executablePath: process.platform === 'darwin' 
+        ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+        : process.platform === 'win32'
+        ? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
+        : '/usr/bin/google-chrome'
     });
 
     try {
@@ -30,15 +38,19 @@ export class PdfService {
       const pdfOptions = this.mergeOptions(options);
       const pdfBuffer = await page.pdf(pdfOptions);
 
-      return pdfBuffer;
+      return Buffer.from(pdfBuffer);
     } finally {
       await browser.close();
     }
   }
 
   private async loadTemplate(templateName: string): Promise<string> {
-    // TODO: 실제 파일 시스템에서 템플릿 로드 구현
-    return '';
+    const templatePath = path.join(this.options.templatePath, `${templateName}.hbs`);
+    try {
+      return fs.readFileSync(templatePath, 'utf-8');
+    } catch (error) {
+      throw new Error(`Template ${templateName} not found at ${templatePath}`);
+    }
   }
 
   private mergeOptions(options?: PdfOptions): PdfOptions {
