@@ -1,6 +1,22 @@
 # @woojoo/pdf
 
+[![GitHub](https://img.shields.io/badge/GitHub-leessang10%2Fwoojoo--libs-blue?style=flat-square&logo=github)](https://github.com/leessang10/woojoo-libs)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE.md)
+[![NPM Version](https://img.shields.io/npm/v/@woojoo/pdf.svg)](https://www.npmjs.com/package/@woojoo/pdf)
+
 NestJS 기반의 PDF 생성 모듈입니다. Handlebars 템플릿을 PDF로 변환할 수 있습니다.
+
+Puppeteer와 Handlebars를 기반으로 하며, HTML 템플릿을 PDF 파일로 쉽게 변환할 수 있습니다.
+
+## 주요 기능
+
+- Handlebars 템플릿을 PDF로 변환
+- CSS 스타일링 지원
+- 페이지 크기 및 여백 설정
+- 가로/세로 방향 설정
+- 배경 이미지/색상 지원
+- 파일 다운로드 또는 브라우저 미리보기
+- UTF-8 파일명 지원
 
 ## 동작 프로세스
 

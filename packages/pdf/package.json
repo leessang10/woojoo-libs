@@ -1,9 +1,17 @@
 {
   "name": "@woojoo/pdf",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "NestJS PDF generation module using Handlebars and Puppeteer",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leessang10/woojoo-libs.git"
+  },
+  "homepage": "https://github.com/leessang10/woojoo-libs/tree/main/packages/pdf#readme",
+  "bugs": {
+    "url": "https://github.com/leessang10/woojoo-libs/issues"
+  },
   "scripts": {
     "build": "tsc",
     "test": "jest",
