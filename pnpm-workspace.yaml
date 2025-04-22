@@ -1,2 +1,10 @@
 packages:
-  - 'packages/*' 
+  - packages/*
+
+ignoredBuiltDependencies:
+  - '@nestjs/core'
+  - puppeteer
+
+onlyBuiltDependencies:
+  - '@parcel/watcher'
+  - nx
