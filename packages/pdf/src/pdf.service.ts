@@ -17,9 +17,7 @@ export class PdfService implements IPdfService {
     const { template, data, options: pdfOptions, styles } = options;
 
     // Puppeteer가 자동으로 Chrome을 찾거나 다운로드합니다
-    const browser = await puppeteer.launch({
-      headless: true
-    });
+    const browser = await this.createBrowser();
 
     try {
       const page = await browser.newPage();
@@ -81,5 +79,16 @@ export class PdfService implements IPdfService {
         </body>
       </html>
     `;
+  }
+
+  private async createBrowser() {
+    return puppeteer.launch({
+      headless: true as const,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+      ],
+    });
   }
 } 
